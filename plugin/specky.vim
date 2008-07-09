@@ -2,7 +2,7 @@
 "
 " Specky!
 " Mahlon E. Smith <mahlon@martini.nu>
-" $Id: specky.vim 75 2008-07-07 04:37:52Z mahlon $
+" $Id: specky.vim 80 2008-07-09 06:58:41Z mahlon $
 "
 " Some documentation {{{
 "
@@ -26,8 +26,15 @@
 " now do with a single key stroke:
 "
 " 	- Switch back and forth from code to testing spec
-" 	- Run the spec, with results going to a new buffer
+"
+" 	- Run the spec, with results going to a new, syntax highlighted buffer
+"
+" 	- Jump quickly to spec failures and failure detail
+" 		- 'e' to move to each failed assertion, and 'E' to jump
+" 		  to the details for it.  'q' to close the spec output buffer.
+"
 " 	- View rdoc of the word under the cursor
+"
 " 	- Dynamically switch string types for the word under the cursor
 " 	  (double quoted, quoted, symbol)
 "
@@ -88,7 +95,7 @@
 "
 "    g:speckySpecFlags
 "    -----------------
-"    Any additional flags for the 'spec' program.  Defaults to '-fp'.
+"    Any additional flags for the 'spec' program.  Defaults to '-fs'.
 "
 "
 "    g:speckyVertSplit
@@ -106,7 +113,7 @@
 " let g:speckyRunRdocCmd = 'fri'
 " let g:speckyRunRdocFlags = '-L -f plain'
 " let g:speckyRunSpecKey = '<C-S>s'
-" let g:speckySpecFlags = '-fp -r loadpath.rb'
+" let g:speckySpecFlags = '-fs -r extra_libs.rb'
 " let g:speckyVertSplit = 1
 
 
@@ -128,6 +135,12 @@ endif
 if exists( 'g:speckyRunRdocKey' )
 	exec 'map ' . g:speckyRunRdocKey . ' :call <SID>:RunRdoc()<CR>'
 endif
+
+
+if exists( 'specky_loaded' )
+	finish
+endif
+let specky_loaded = '$Rev: 80 $'
 
 
 "}}}
@@ -261,12 +274,19 @@ function! <SID>:RunSpec()
 	endif
 
 	execute ( exists('g:speckyVertSplit') ? 'vert new ' : 'new ') . l:buf
-	execute 'setlocal buftype=nofile bufhidden=delete noswapfile filetype=spec'
+	execute 'setlocal buftype=nofile bufhidden=delete noswapfile filetype=specrun'
+	set foldtext='--'.getline(v:foldstart).v:folddashes
+
+	" Set up some convenient keybindings.
+	"
+	execute 'nnoremap <silent> <buffer> q :close<CR>'
+	execute 'nnoremap <silent> <buffer> e :call <SID>:FindSpecError(0)<CR>'
+	execute 'nnoremap <silent> <buffer> E :call <SID>:FindSpecError(1)<CR>'
 
 	" Default flags for spec
 	"
 	if !exists( 'g:speckySpecFlags' )
-		let g:speckySpecFlags = '-fp'
+		let g:speckySpecFlags = '-fs'
 	endif
 
 	" Call spec and gather up the output
@@ -274,7 +294,8 @@ function! <SID>:RunSpec()
 	let l:cmd    = 'spec ' . g:speckySpecFlags . ' ' . l:spec
 	let l:output = system( l:cmd )
 	call append( 0, split( l:output, "\n" ) )
-	call append( 0, 'Output of: ' . l:cmd )
+	call append( 0, '' )
+	call append( 0, 'Output of: ' . l:cmd  )
 	execute 'normal gg'
 
 	" Lockdown the buffer
@@ -336,6 +357,7 @@ function! <SID>:RunRdoc()
 
 	execute ( exists('g:speckyVertSplit') ? 'vert new ' : 'new ') . l:buf
 	execute 'setlocal buftype=nofile bufhidden=delete noswapfile filetype=rdoc'
+	execute 'nnoremap <silent> <buffer> q :close<CR>'
 
 	" Call the documentation and gather up the output
 	"
@@ -351,10 +373,36 @@ endfunction
 
 
 " }}}
+" specky:FindSpecError( detail ) {{{
+"
+" Convenience searches for jumping to spec failures.
+"
+function! <SID>:FindSpecError( detail )
+
+	if ( a:detail )
+		" Find the detailed failure text for the current failure line,
+		" and unfold it.
+		"
+		call search('^' . matchstr(getline('.'),'\d\+)$') )
+		if has('folding')
+			execute 'normal za'
+		endif
+
+	else
+		" Find the 'regular' failure line
+		"
+		call search('(ERROR - \d\+)$')
+		execute 'nohl'
+
+	endif
+endfunction
+
+
+" }}}
 " s:err( msg ) "{{{
 " Notify of problems in a consistent fashion.
 "
 function! s:err( msg )
 	echohl WarningMsg|echomsg 'specky: ' . a:msg|echohl None
-endfunction "}}}
+endfunction " }}}
 
