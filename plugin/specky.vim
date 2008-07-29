@@ -2,7 +2,7 @@
 "
 " Specky!
 " Mahlon E. Smith <mahlon@martini.nu>
-" $Id: specky.vim 80 2008-07-09 06:58:41Z mahlon $
+" $Id: specky.vim 88 2008-07-29 22:33:47Z mahlon $
 "
 " Some documentation {{{
 "
@@ -12,6 +12,9 @@
 "
 " Specky is a small collection of functions to help make behaviorial testing
 " streamlined and easy when working with ruby and rspec.
+"
+" It also includes a couple of convenience functions for day to day
+" programming tasks.
 "
 " ------------------------------------------------------
 " Okay then, what does it do?
@@ -37,6 +40,9 @@
 "
 " 	- Dynamically switch string types for the word under the cursor
 " 	  (double quoted, quoted, symbol)
+"
+" 	- Automatically align hash blocks and assignment lines
+"
 "
 " ------------------------------------------------------
 " Configuration
@@ -104,6 +110,21 @@
 "    horizontally.
 "
 "
+"    g:speckyAlignKey
+"    -----------------
+"    Automatically line up consecutive assignments, or hash definitions.
+"    Here's a useful macro, assuming you use the 'cntl-s a' binding:
+"
+"    	:map <C-S>} vi}=vi}<C-S>a 
+"
+"	 This auto aligns anything inside braces.
+"
+"    hash = {                  |   hash = {   
+"        :blah => 1,           |       :blah     => 1,
+"                :woo => 2,    |       :woo      => 2,
+"            :whatever => 3    |       :whatever => 3 
+"    }                         |   }
+"
 "
 " Here's what my config looks like:
 "
@@ -115,46 +136,53 @@
 " let g:speckyRunSpecKey = '<C-S>s'
 " let g:speckySpecFlags = '-fs -r extra_libs.rb'
 " let g:speckyVertSplit = 1
+" let g:speckyAlignKey = "<C-S>a"
+" map <C-S>} vi}=vi}<C-S>a 
 
 
 " }}}
 " Hook up the functions to the user supplied key bindings. {{{
 "
 if exists( 'g:speckySpecSwitcherKey' )
-	exec 'map ' . g:speckySpecSwitcherKey . ' :call <SID>:SpecSwitcher()<CR>'
+	exec 'map ' . g:speckySpecSwitcherKey . ' :call <SID>SpecSwitcher()<CR>'
 endif
 
 if exists( 'g:speckyQuoteSwitcherKey' )
-	exec 'map ' . g:speckyQuoteSwitcherKey . ' :call <SID>:QuoteSwitcher()<CR>'
+	exec 'map ' . g:speckyQuoteSwitcherKey . ' :call <SID>QuoteSwitcher()<CR>'
 endif
 
 if exists( 'g:speckyRunSpecKey' )
-	exec 'map ' . g:speckyRunSpecKey . ' :call <SID>:RunSpec()<CR>'
+	exec 'map ' . g:speckyRunSpecKey . ' :call <SID>RunSpec()<CR>'
 endif
 
 if exists( 'g:speckyRunRdocKey' )
-	exec 'map ' . g:speckyRunRdocKey . ' :call <SID>:RunRdoc()<CR>'
+	exec 'map ' . g:speckyRunRdocKey . ' :call <SID>RunRdoc()<CR>'
+endif
+
+if exists( 'g:speckyAlignKey' )
+	exec 'map ' . g:speckyAlignKey . ' :call <SID>AlignAssignment()<CR>'
 endif
 
 
 if exists( 'specky_loaded' )
 	finish
 endif
-let specky_loaded = '$Rev: 80 $'
+let specky_loaded = '$Rev: 88 $'
 
 
 "}}}
 " Menu configuration {{{
 "
 let s:menuloc = '&Plugin.&specky'
-execute 'menu ' . s:menuloc . '.&Jump\ to\ code/spec :call <SID>:SpecSwitcher()<CR>'
-execute 'menu ' . s:menuloc . '.Run\ &spec :call <SID>:RunSpec()<CR>'
-execute 'menu ' . s:menuloc . '.&RDoc\ lookup :call <SID>:RunRdoc()<CR>'
-execute 'menu ' . s:menuloc . '.Rotate\ &quote\ style :call <SID>:QuoteSwitcher()<CR>'
+execute 'menu ' . s:menuloc . '.&Jump\ to\ code/spec :call <SID>SpecSwitcher()<CR>'
+execute 'menu ' . s:menuloc . '.Run\ &spec :call <SID>RunSpec()<CR>'
+execute 'menu ' . s:menuloc . '.&RDoc\ lookup :call <SID>RunRdoc()<CR>'
+execute 'menu ' . s:menuloc . '.Rotate\ &quote\ style :call <SID>QuoteSwitcher()<CR>'
+execute 'menu ' . s:menuloc . '.&Align\ assignments :call <SID>AlignAssignment()<CR>'
 
 
 " }}}
-" specky:SpecSwitcher() {{{
+" SpecSwitcher() {{{
 "
 " When in ruby code or an rspec BDD file, try and search recursively through
 " the filesystem (within the current working directory) to find the
@@ -212,14 +240,14 @@ endfunction
 
 
 " }}}
-" specky:QuoteSwitcher() {{{
+" QuoteSwitcher() {{{
 "
 " Wrap the word under the cursor in quotes.  If in ruby mode,
 " cycle between quoting styles and symbols.
 "
 " variable -> "variable" -> 'variable' -> :variable
 "
-function! <SID>:QuoteSwitcher()
+function! <SID>QuoteSwitcher()
 	let l:type = strpart( expand("<cWORD>"), 0, 1 )
 	let l:word = expand("<cword>")
 
@@ -252,11 +280,11 @@ endfunction
 
 
 " }}}
-" specky:RunSpec() {{{
+" RunSpec() {{{
 "
 " Run this function while in a spec file to run the specs within vim.
 "
-function! <SID>:RunSpec()
+function! <SID>RunSpec()
 
 	if !executable( 'spec' )
 		call s:err( '"spec" was not found in your $PATH.' )
@@ -280,8 +308,8 @@ function! <SID>:RunSpec()
 	" Set up some convenient keybindings.
 	"
 	execute 'nnoremap <silent> <buffer> q :close<CR>'
-	execute 'nnoremap <silent> <buffer> e :call <SID>:FindSpecError(0)<CR>'
-	execute 'nnoremap <silent> <buffer> E :call <SID>:FindSpecError(1)<CR>'
+	execute 'nnoremap <silent> <buffer> e :call <SID>FindSpecError(0)<CR>'
+	execute 'nnoremap <silent> <buffer> E :call <SID>FindSpecError(1)<CR>'
 
 	" Default flags for spec
 	"
@@ -305,11 +333,11 @@ endfunction
 
 
 " }}}
-" specky:RunRdoc() {{{
+" RunRdoc() {{{
 "
 " Get documentation for the word under the cursor.
 "
-function! <SID>:RunRdoc()
+function! <SID>RunRdoc()
 
 	" If we aren't in a ruby file (specs are ruby-mode too) then we probably
 	" don't care too much about this function.
@@ -342,11 +370,13 @@ function! <SID>:RunRdoc()
 		" something like Kernel#require.
 		"
 		let l:word = expand('<cWORD>')
+		echo l:word
 	else
 		" Not in the rdoc buffer.  This allows us to lookup
 		" something like 'each' in some_hash.each { ... }
 		"
 		let l:word = expand('<cword>')
+		echo l:word
 	endif
 
 	" Squash the old buffer, if it exists.
@@ -373,11 +403,11 @@ endfunction
 
 
 " }}}
-" specky:FindSpecError( detail ) {{{
+" FindSpecError( detail ) {{{
 "
 " Convenience searches for jumping to spec failures.
 "
-function! <SID>:FindSpecError( detail )
+function! <SID>FindSpecError( detail )
 
 	if ( a:detail )
 		" Find the detailed failure text for the current failure line,
@@ -399,6 +429,46 @@ endfunction
 
 
 " }}}
+" AlignAssignment( range ) {{{
+"
+" Prettify =, =>, and --> lines as such:
+"
+"	:blah => 1,
+"	:woo => 2,
+"	:whatever => 3
+"
+"	:blah     => 1,
+"	:woo      => 2,
+"	:whatever => 3
+"
+function! <SID>AlignAssignment() range
+
+	let l:pat     = '[-=]\+>\?'
+	let l:longest = 0
+
+	" First pass, find the longest lvalue in the selection
+	"
+	let l:curline = a:firstline
+	while l:curline <= a:lastline
+		let l:curlength = match( getline( l:curline ), l:pat )
+		let l:longest   = l:curlength > l:longest ? l:curlength : l:longest
+		
+		let l:curline = l:curline + 1
+	endwhile
+
+	" Second pass, expand with spaces to align assignments
+	"
+	let l:curline = a:firstline
+	while l:curline <= a:lastline
+		let l:spaces_needed = l:longest - match( getline( l:curline ), l:pat )
+		let l:char = ' ' . matchstr( getline( l:curline ), l:pat ) . ' '
+		call setline( l:curline, substitute( getline(l:curline), l:char, repeat( ' ', l:spaces_needed ) . l:char, ''))
+		let l:curline = l:curline + 1
+	endwhile
+endfunction
+
+
+"}}}
 " s:err( msg ) "{{{
 " Notify of problems in a consistent fashion.
 "
