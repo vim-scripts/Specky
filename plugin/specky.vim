@@ -2,7 +2,7 @@
 "
 " Specky!
 " Mahlon E. Smith <mahlon@martini.nu>
-" $Id: specky.vim 88 2008-07-29 22:33:47Z mahlon $
+" $Id: specky.vim 89 2008-07-29 23:12:11Z mahlon $
 "
 " Some documentation {{{
 "
@@ -167,7 +167,7 @@ endif
 if exists( 'specky_loaded' )
 	finish
 endif
-let specky_loaded = '$Rev: 88 $'
+let specky_loaded = '$Rev: 89 $'
 
 
 "}}}
@@ -370,13 +370,11 @@ function! <SID>RunRdoc()
 		" something like Kernel#require.
 		"
 		let l:word = expand('<cWORD>')
-		echo l:word
 	else
 		" Not in the rdoc buffer.  This allows us to lookup
 		" something like 'each' in some_hash.each { ... }
 		"
 		let l:word = expand('<cword>')
-		echo l:word
 	endif
 
 	" Squash the old buffer, if it exists.
@@ -384,6 +382,9 @@ function! <SID>RunRdoc()
 	if buflisted( l:buf )
 		execute 'bd! ' . l:buf
 	endif
+
+	" With multiple matches, strip the comams from the cWORD.
+	let l:word = substitute( l:word, ',', '', 'eg' )
 
 	execute ( exists('g:speckyVertSplit') ? 'vert new ' : 'new ') . l:buf
 	execute 'setlocal buftype=nofile bufhidden=delete noswapfile filetype=rdoc'
