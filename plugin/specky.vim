@@ -144,28 +144,28 @@
 " Hook up the functions to the user supplied key bindings. {{{
 "
 if exists( 'g:speckySpecSwitcherKey' )
-	exec 'map ' . g:speckySpecSwitcherKey . ' :call <SID>SpecSwitcher()<CR>'
+	execute 'map ' . g:speckySpecSwitcherKey . ' :call <SID>SpecSwitcher()<CR>'
 endif
 
 if exists( 'g:speckyQuoteSwitcherKey' )
-	exec 'map ' . g:speckyQuoteSwitcherKey . ' :call <SID>QuoteSwitcher()<CR>'
+	execute 'map ' . g:speckyQuoteSwitcherKey . ' :call <SID>QuoteSwitcher()<CR>'
 endif
 
 if exists( 'g:speckyRunSpecKey' )
-	exec 'map ' . g:speckyRunSpecKey . ' :call <SID>RunSpec()<CR>'
+	execute 'map ' . g:speckyRunSpecKey . ' :call <SID>RunSpec()<CR>'
 endif
 
 if exists( 'g:speckyRunRdocKey' )
-	exec 'map ' . g:speckyRunRdocKey . ' :call <SID>RunRdoc()<CR>'
+	execute 'map ' . g:speckyRunRdocKey . ' :call <SID>RunRdoc()<CR>'
 endif
 
 if exists( 'g:speckyAlignKey' )
-	exec 'map ' . g:speckyAlignKey . ' :call <SID>AlignAssignment()<CR>'
+	execute 'map ' . g:speckyAlignKey . ' :call <SID>AlignAssignment()<CR>'
 endif
 
 
 if exists( 'specky_loaded' )
-	finish
+    finish
 endif
 let specky_loaded = '$Rev: 89 $'
 
@@ -191,7 +191,7 @@ execute 'menu ' . s:menuloc . '.&Align\ assignments :call <SID>AlignAssignment()
 " This operates under the assumption that you've used chdir() to put vim into
 " the top level directory of your project.
 "
-function! <SID>:SpecSwitcher()
+function! <SID>SpecSwitcher()
 
 	" If we aren't in a ruby file (specs are ruby-mode too) then we probably
 	" don't care too much about this function.
@@ -291,6 +291,15 @@ function! <SID>RunSpec()
 		return
 	endif
 
+	" If we're in the code instead of the spec, try and switch
+	" before running tests.
+	"
+	let l:filename     = matchstr( bufname('%'), '[0-9A-Za-z_.-]*$' )
+	let l:is_spec_file = match( l:filename, '_spec.rb$' ) == -1 ? 0 : 1
+	if ( ! l:is_spec_file )
+		silent call <SID>SpecSwitcher()
+	endif
+
 	let l:spec   = bufname('%')
 	let l:buf    = 'specky:specrun'
 	let l:bufnum = bufnr( l:buf )
@@ -302,14 +311,14 @@ function! <SID>RunSpec()
 	endif
 
 	execute ( exists('g:speckyVertSplit') ? 'vert new ' : 'new ') . l:buf
-	execute 'setlocal buftype=nofile bufhidden=delete noswapfile filetype=specrun'
+	setlocal buftype=nofile bufhidden=delete noswapfile filetype=specrun
 	set foldtext='--'.getline(v:foldstart).v:folddashes
 
 	" Set up some convenient keybindings.
 	"
-	execute 'nnoremap <silent> <buffer> q :close<CR>'
-	execute 'nnoremap <silent> <buffer> e :call <SID>FindSpecError(0)<CR>'
-	execute 'nnoremap <silent> <buffer> E :call <SID>FindSpecError(1)<CR>'
+	nnoremap <silent> <buffer> q :close<CR>
+	nnoremap <silent> <buffer> e :call <SID>FindSpecError(0)<CR>
+	nnoremap <silent> <buffer> E :call <SID>FindSpecError(1)<CR>
 
 	" Default flags for spec
 	"
@@ -324,11 +333,11 @@ function! <SID>RunSpec()
 	call append( 0, split( l:output, "\n" ) )
 	call append( 0, '' )
 	call append( 0, 'Output of: ' . l:cmd  )
-	execute 'normal gg'
+	normal gg
 
 	" Lockdown the buffer
 	"
-	execute 'setlocal nomodifiable'
+	setlocal nomodifiable
 endfunction
 
 
@@ -384,11 +393,12 @@ function! <SID>RunRdoc()
 	endif
 
 	" With multiple matches, strip the comams from the cWORD.
+	"
 	let l:word = substitute( l:word, ',', '', 'eg' )
 
 	execute ( exists('g:speckyVertSplit') ? 'vert new ' : 'new ') . l:buf
-	execute 'setlocal buftype=nofile bufhidden=delete noswapfile filetype=rdoc'
-	execute 'nnoremap <silent> <buffer> q :close<CR>'
+	setlocal buftype=nofile bufhidden=delete noswapfile filetype=rdoc
+	nnoremap <silent> <buffer> q :close<CR>
 
 	" Call the documentation and gather up the output
 	"
@@ -414,16 +424,19 @@ function! <SID>FindSpecError( detail )
 		" Find the detailed failure text for the current failure line,
 		" and unfold it.
 		"
+		let l:orig_so = &so
+		set so=100
 		call search('^' . matchstr(getline('.'),'\d\+)$') )
 		if has('folding')
-			execute 'normal za'
+			silent! normal za
 		endif
+		execute 'set so=' . l:orig_so
 
 	else
 		" Find the 'regular' failure line
 		"
 		call search('(ERROR - \d\+)$')
-		execute 'nohl'
+		nohl
 
 	endif
 endfunction
