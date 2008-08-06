@@ -1,144 +1,9 @@
-" vim: set noet nosta sw=4 ts=4 fdm=marker : 
+" vim: set noet nosta sw=4 ts=4 fdm=marker :
 "
 " Specky!
 " Mahlon E. Smith <mahlon@martini.nu>
-" $Id: specky.vim 89 2008-07-29 23:12:11Z mahlon $
+" $Id: specky.vim 92 2008-08-06 19:49:52Z mahlon $
 "
-" Some documentation {{{
-"
-" ------------------------------------------------------
-" What's this?
-" ------------------------------------------------------
-"
-" Specky is a small collection of functions to help make behaviorial testing
-" streamlined and easy when working with ruby and rspec.
-"
-" It also includes a couple of convenience functions for day to day
-" programming tasks.
-"
-" ------------------------------------------------------
-" Okay then, what does it do?
-" ------------------------------------------------------
-"
-" By default?  Nothing, unless you are comfortable using the menus.  I decided
-" the easiest way to cherry pick the functions that you'd like was to enable
-" them via key bindings.  By doing this Specky won't make assumptions about
-" your current bindings, and won't stomp on anything you don't want it to.
-"
-" After you've configured your bindings, here are some of the things you can
-" now do with a single key stroke:
-"
-" 	- Switch back and forth from code to testing spec
-"
-" 	- Run the spec, with results going to a new, syntax highlighted buffer
-"
-" 	- Jump quickly to spec failures and failure detail
-" 		- 'e' to move to each failed assertion, and 'E' to jump
-" 		  to the details for it.  'q' to close the spec output buffer.
-"
-" 	- View rdoc of the word under the cursor
-"
-" 	- Dynamically switch string types for the word under the cursor
-" 	  (double quoted, quoted, symbol)
-"
-" 	- Automatically align hash blocks and assignment lines
-"
-"
-" ------------------------------------------------------
-" Configuration
-" ------------------------------------------------------
-"
-" Here are all of the available configuration options.
-" Note that you must at least set the *Key binding variables to enable the
-" functions.  Everything else is optional.  Put these into your ~/.vimrc, or
-" wherever else you store this kind of stuff.
-"
-"
-"    g:speckySpecSwitcherKey
-"    -----------------------
-"    Setting this enables spec to code switching, and visa versa.
-"    
-"    Switching uses path searching instead of reliance on directory structure
-"    in your project.  The idea here is that you'd :chdir into your project
-"    directory.  Spec files just need to end in '_spec.rb'.
-"
-"        aRubyClass.rb ---> aRubyClass_spec.rb
-"
-"
-"    g:speckyQuoteSwitcherKey
-"    ------------------------
-"    Setting this enables quote style switching.
-"
-"    If you aren't in ruby mode, this just changes the word under the cursor
-"    back and forth from double quoting to single quoting.
-"
-"    In ruby mode, symbols are also put into the rotation.
-"
-"        "string" -> 'string' -> :string
-"
-"
-"    g:speckyRunRdocKey
-"    ------------------
-"    Setting this enables the display of rdoc documentation for the current
-"    word under the cursor.
-"
-"
-"    g:speckyRunRdocCmd
-"    ------------------
-"    If you prefer an rdoc display program other than 'ri', you can set it
-"    with this variable.
-"
-"
-"    g:speckyRunRdocFlags
-"    --------------------
-"    Any additional flags for the g:speckyRunRdocCmd program.
-"
-"
-"    g:speckyRunSpecKey
-"    ------------------
-"    Settings this variable allows you to run 'spec' on the current buffer.
-"
-"
-"    g:speckySpecFlags
-"    -----------------
-"    Any additional flags for the 'spec' program.  Defaults to '-fs'.
-"
-"
-"    g:speckyVertSplit
-"    -----------------
-"    For both spec and rdoc commands, split the window vertically instead of
-"    horizontally.
-"
-"
-"    g:speckyAlignKey
-"    -----------------
-"    Automatically line up consecutive assignments, or hash definitions.
-"    Here's a useful macro, assuming you use the 'cntl-s a' binding:
-"
-"    	:map <C-S>} vi}=vi}<C-S>a 
-"
-"	 This auto aligns anything inside braces.
-"
-"    hash = {                  |   hash = {   
-"        :blah => 1,           |       :blah     => 1,
-"                :woo => 2,    |       :woo      => 2,
-"            :whatever => 3    |       :whatever => 3 
-"    }                         |   }
-"
-"
-" Here's what my config looks like:
-"
-" let g:speckySpecSwitcherKey = '<C-S>x'
-" let g:speckyQuoteSwitcherKey = "<C-S>'"
-" let g:speckyRunRdocKey = '<C-S>r'
-" let g:speckyRunRdocCmd = 'fri'
-" let g:speckyRunRdocFlags = '-L -f plain'
-" let g:speckyRunSpecKey = '<C-S>s'
-" let g:speckySpecFlags = '-fs -r extra_libs.rb'
-" let g:speckyVertSplit = 1
-" let g:speckyAlignKey = "<C-S>a"
-" map <C-S>} vi}=vi}<C-S>a 
-
 
 " }}}
 " Hook up the functions to the user supplied key bindings. {{{
@@ -165,9 +30,9 @@ endif
 
 
 if exists( 'specky_loaded' )
-    finish
+	finish
 endif
-let specky_loaded = '$Rev: 89 $'
+let specky_loaded = '$Rev: 92 $'
 
 
 "}}}
@@ -286,11 +151,6 @@ endfunction
 "
 function! <SID>RunSpec()
 
-	if !executable( 'spec' )
-		call s:err( '"spec" was not found in your $PATH.' )
-		return
-	endif
-
 	" If we're in the code instead of the spec, try and switch
 	" before running tests.
 	"
@@ -317,18 +177,20 @@ function! <SID>RunSpec()
 	" Set up some convenient keybindings.
 	"
 	nnoremap <silent> <buffer> q :close<CR>
-	nnoremap <silent> <buffer> e :call <SID>FindSpecError(0)<CR>
-	nnoremap <silent> <buffer> E :call <SID>FindSpecError(1)<CR>
+	nnoremap <silent> <buffer> e :call <SID>FindSpecError(1)<CR>
+	nnoremap <silent> <buffer> r :call <SID>FindSpecError(-1)<CR>
+	nnoremap <silent> <buffer> E :call <SID>FindSpecError(0)<CR>
+	nnoremap <silent> <buffer> <C-e> :let b:err_line=1<CR>
 
-	" Default flags for spec
+	" Default cmd for spec
 	"
-	if !exists( 'g:speckySpecFlags' )
-		let g:speckySpecFlags = '-fs'
+	if !exists( 'g:speckyRunSpecCmd' )
+		let g:speckyRunSpecCmd = 'spec -fs'
 	endif
 
 	" Call spec and gather up the output
 	"
-	let l:cmd    = 'spec ' . g:speckySpecFlags . ' ' . l:spec
+	let l:cmd    =  g:speckyRunSpecCmd . ' ' . l:spec
 	let l:output = system( l:cmd )
 	call append( 0, split( l:output, "\n" ) )
 	call append( 0, '' )
@@ -362,15 +224,6 @@ function! <SID>RunRdoc()
 		let g:speckyRunRdocCmd = 'ri'
 	endif
 
-	if !exists( 'g:speckyRunRdocFlags' )
-		let g:speckyRunRdocFlags = ''
-	endif
-
-	if !executable( g:speckyRunRdocCmd )
-		call s:err( '"' . g:speckyRunRdocCmd . '" was not found in your $PATH.' )
-		return
-	endif
-
 	let l:buf     = 'specky:rdoc'
 	let l:bufname = bufname('%')
 
@@ -402,7 +255,7 @@ function! <SID>RunRdoc()
 
 	" Call the documentation and gather up the output
 	"
-	let l:cmd    = g:speckyRunRdocCmd . ' ' . g:speckyRunRdocFlags . ' ' . l:word
+	let l:cmd    = g:speckyRunRdocCmd . ' ' . l:word
 	let l:output = system( l:cmd )
 	call append( 0, split( l:output, "\n" ) )
 	execute 'normal gg'
@@ -420,7 +273,9 @@ endfunction
 "
 function! <SID>FindSpecError( detail )
 
-	if ( a:detail )
+	let l:err_str = '(FAILED\|ERROR - \d\+)$'
+
+	if ( a:detail == 0 )
 		" Find the detailed failure text for the current failure line,
 		" and unfold it.
 		"
@@ -435,7 +290,11 @@ function! <SID>FindSpecError( detail )
 	else
 		" Find the 'regular' failure line
 		"
-		call search('(ERROR - \d\+)$')
+		if exists( 'b:err_line' )
+			call cursor( b:err_line, a:detail == -1 ? 1 : strlen(getline(b:err_line)) )
+		endif
+		call search( l:err_str, a:detail == -1 ? 'b' : '' )
+		let b:err_line = line('.')
 		nohl
 
 	endif
@@ -445,25 +304,24 @@ endfunction
 " }}}
 " AlignAssignment( range ) {{{
 "
-" Prettify =, =>, and --> lines as such:
-"
-"	:blah => 1,
-"	:woo => 2,
-"	:whatever => 3
-"
-"	:blah     => 1,
-"	:woo      => 2,
-"	:whatever => 3
+" Prettify =, =>, and --> lines as such.
 "
 function! <SID>AlignAssignment() range
 
 	let l:pat     = '[-=]\+>\?'
+	let l:white   = '\(\s\+\)\?'
 	let l:longest = 0
 
-	" First pass, find the longest lvalue in the selection
+	" First pass, find the longest lvalue in the selection, after removing
+	" additional stray whitespace.
 	"
 	let l:curline = a:firstline
 	while l:curline <= a:lastline
+		" what's the separator?
+		let l:char = ' ' . matchstr( getline( l:curline ), l:pat ) . ' '
+		" remove stray whites
+		call setline( l:curline, substitute( getline(l:curline), l:white . l:pat . l:white , l:char, '' ) )
+		" is this the longest line we've seen so far?
 		let l:curlength = match( getline( l:curline ), l:pat )
 		let l:longest   = l:curlength > l:longest ? l:curlength : l:longest
 		

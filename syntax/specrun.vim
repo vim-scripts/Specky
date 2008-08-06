@@ -34,7 +34,7 @@ highlight link specPendingPlain Function
 
 " Failed specs (specdoc output)
 "
-syntax match specFailed /.*ERROR - \d\+)/ contained
+syntax match specFailed /.*\(FAILED\|ERROR\) - \d\+)/ contained
 highlight link specFailed WarningMsg
 "
 " (Plain output)
