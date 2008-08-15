@@ -2,7 +2,7 @@
 "
 " Specky!
 " Mahlon E. Smith <mahlon@martini.nu>
-" $Id: specky.vim 92 2008-08-06 19:49:52Z mahlon $
+" $Id: specky.vim 49 2008-08-15 13:32:40Z mahlon $
 "
 
 " }}}
@@ -24,10 +24,6 @@ if exists( 'g:speckyRunRdocKey' )
 	execute 'map ' . g:speckyRunRdocKey . ' :call <SID>RunRdoc()<CR>'
 endif
 
-if exists( 'g:speckyAlignKey' )
-	execute 'map ' . g:speckyAlignKey . ' :call <SID>AlignAssignment()<CR>'
-endif
-
 
 if exists( 'specky_loaded' )
 	finish
@@ -43,7 +39,6 @@ execute 'menu ' . s:menuloc . '.&Jump\ to\ code/spec :call <SID>SpecSwitcher()<C
 execute 'menu ' . s:menuloc . '.Run\ &spec :call <SID>RunSpec()<CR>'
 execute 'menu ' . s:menuloc . '.&RDoc\ lookup :call <SID>RunRdoc()<CR>'
 execute 'menu ' . s:menuloc . '.Rotate\ &quote\ style :call <SID>QuoteSwitcher()<CR>'
-execute 'menu ' . s:menuloc . '.&Align\ assignments :call <SID>AlignAssignment()<CR>'
 
 
 " }}}
@@ -302,45 +297,6 @@ endfunction
 
 
 " }}}
-" AlignAssignment( range ) {{{
-"
-" Prettify =, =>, and --> lines as such.
-"
-function! <SID>AlignAssignment() range
-
-	let l:pat     = '[-=]\+>\?'
-	let l:white   = '\(\s\+\)\?'
-	let l:longest = 0
-
-	" First pass, find the longest lvalue in the selection, after removing
-	" additional stray whitespace.
-	"
-	let l:curline = a:firstline
-	while l:curline <= a:lastline
-		" what's the separator?
-		let l:char = ' ' . matchstr( getline( l:curline ), l:pat ) . ' '
-		" remove stray whites
-		call setline( l:curline, substitute( getline(l:curline), l:white . l:pat . l:white , l:char, '' ) )
-		" is this the longest line we've seen so far?
-		let l:curlength = match( getline( l:curline ), l:pat )
-		let l:longest   = l:curlength > l:longest ? l:curlength : l:longest
-		
-		let l:curline = l:curline + 1
-	endwhile
-
-	" Second pass, expand with spaces to align assignments
-	"
-	let l:curline = a:firstline
-	while l:curline <= a:lastline
-		let l:spaces_needed = l:longest - match( getline( l:curline ), l:pat )
-		let l:char = ' ' . matchstr( getline( l:curline ), l:pat ) . ' '
-		call setline( l:curline, substitute( getline(l:curline), l:char, repeat( ' ', l:spaces_needed ) . l:char, ''))
-		let l:curline = l:curline + 1
-	endwhile
-endfunction
-
-
-"}}}
 " s:err( msg ) "{{{
 " Notify of problems in a consistent fashion.
 "

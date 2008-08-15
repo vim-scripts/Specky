@@ -1,6 +1,6 @@
 "
 " specky: syntax highlighting for the 'spec' script output
-" $Id: specrun.vim 80 2008-07-09 06:58:41Z mahlon $
+" $Id: specrun.vim 46 2008-08-12 16:24:10Z mahlon $
 "
 
 if has("folding")
