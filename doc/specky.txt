@@ -14,13 +14,14 @@ CONTENTS                                                      *SpeckyContents*
     2) Functionality................................|SpeckyFunctionality|
     3) Enabling Specky..............................|SpeckyVimrcExample|
     4) Configuration................................|SpeckyOptions|
-        4.1) Cycling quote styles...................|g:speckyQuoteSwitcherKey|
-        4.2) Display ruby documentation.............|g:speckyRunRdocKey|
-        4.3) Toggle editing between spec and code...|g:speckySpecSwitcherKey|
-        4.4) Run specs for the current buffer.......|g:speckyRunSpecKey|
-        4.5) Modify the default spec command........|g:speckyRunSpecCmd|
-        4.6) Modify the default rdoc command........|g:speckyRunRdocCmd|
-        4.7) Split windows vertically...............|g:speckyVertSplit|
+        4.1) Create text banners....................|g:speckyBannerKey|
+        4.2) Cycling quote styles...................|g:speckyQuoteSwitcherKey|
+        4.3) Display ruby documentation.............|g:speckyRunRdocKey|
+        4.4) Toggle editing between spec and code...|g:speckySpecSwitcherKey|
+        4.5) Run specs for the current buffer.......|g:speckyRunSpecKey|
+        4.6) Modify the default spec command........|g:speckyRunSpecCmd|
+        4.7) Modify the default rdoc command........|g:speckyRunRdocCmd|
+        4.8) Split windows vertically...............|g:speckyVertSplit|
     5) Author.......................................|SpeckyAuthor|
     6) License......................................|SpeckyLicense|
 
@@ -48,9 +49,9 @@ By default?  Nothing, unless you are comfortable using the menus.  I decided
 the easiest way to cherry pick the functionality that you'd like was to enable
 them via key bindings.  By doing this, Specky won't make assumptions about
 your current environment, and won't stomp on anything you don't want it to.
->
-    Specky won't do -anything- with your environment until you enable
-    the key bindings!!
+
+    Specky won't do -anything- with your environment until you enable ~
+    the key bindings!! ~
 
 After you've configured your bindings, here are some of the things you can
 now do with a single key stroke:
@@ -70,6 +71,7 @@ now do with a single key stroke:
     - Dynamically switch string types for the word under the cursor
       (double quoted, quoted, symbol)
 
+    - Make lovely and quick comment banners for ruby code.
 
 
 ==============================================================================
@@ -78,6 +80,7 @@ now do with a single key stroke:
 
 Here's what my config looks like. >
 
+    let g:speckyBannerKey = "<C-S>b"
     let g:speckyQuoteSwitcherKey = "<C-S>'"
     let g:speckyRunRdocKey = "<C-S>r"
     let g:speckySpecSwitcherKey = "<C-S>x"
@@ -90,6 +93,7 @@ Here's what my config looks like. >
 With these bindings, all specky commands start with <ctrl-s> ("s" for
 specky!), followed by a mnemonic function to run:
 
+    b ----> Banner creation ~
     ' ----> Quote cycling ~
     r ----> run Rdoc ~
     x ----> code and spec eXchange ~
@@ -97,7 +101,7 @@ specky!), followed by a mnemonic function to run:
 
 Of course, <ctrl-s> is a "suspend" signal for most terminals, so these
 bindings are meant for a |gui| environment, such as gvim.  Your mileage (and
-tastes) will doubtlessly vary.
+tastes) will doubtlessly vary.  Do what you will.  I won't judge you.
 
 
 
@@ -107,22 +111,51 @@ tastes) will doubtlessly vary.
 
 Here are all of the available configuration options.
 
-Please note that you must (at an optional minimum) set the respective binding
-variables:
+Please note that you must set binding variables:
 
+    |g:speckyBannerKey|
     |g:speckyQuoteSwitcherKey|
     |g:speckyRunRdocKey|
     |g:speckySpecSwitcherKey|
     |g:speckyRunSpecKey|
 
-...in order to enable specky functionality.  See |SpeckyVimrcExample| for
-details. Any other options are entirely optional.  Put these into your
-|vimrc|, or wherever else you enjoy storing this kind of stuff.
+...in order to enable the respective specky functionality.  See
+|SpeckyVimrcExample| for details. Any other options are entirely optional.
+Put these into your |vimrc|, or wherever else you enjoy storing this kind of
+stuff.
 
 
 
 ------------------------------------------------------------------------------
-4.1                                                 *g:speckyQuoteSwitcherKey*
+4.1                                                        *g:speckyBannerKey*
+
+
+Setting this binding enables comment banner creation.
+
+This is purely a convenience routine, and a stylistic one at that.  I prefer
+large advertising of what "area" of code you are in, along with other
+miscellaneous labels for humans to read.  If this isn't how you roll, then by
+all means, don't enable this binding!  :)
+
+As an example -- you can just type:
+
+	instance methods ~
+
+Then hit the keystroke.  It will magically turn into: >
+
+  ########################################################################
+  ### I N S T A N C E   M E T H O D S
+  ########################################################################
+
+With all those saved extra keystrokes this might provide you per banner over
+the years, your RSI-free hands will thank you.  And the total time savings!!
+Oh man, what are you going to DO with all of that extra free time?
+The possibilities are staggering.
+
+
+
+------------------------------------------------------------------------------
+4.2                                                 *g:speckyQuoteSwitcherKey*
 
 
 Setting this binding enables quote "style switching".
@@ -136,13 +169,12 @@ In ruby mode, symbols are also put into the rotation.
 
     "string" -> 'string' -> :string -> "string" ... ~
 
-Note that quote cycling only works with a |word|.  Sentences are not currently
-supported.  (But hopefully will be soon.)
+Note that quote cycling only works with a |word|.
 
 
 
 ------------------------------------------------------------------------------
-4.2                                                       *g:speckyRunRdocKey*
+4.3                                                       *g:speckyRunRdocKey*
 
 
 Setting this enables the display of rdoc documentation for the current
@@ -152,7 +184,7 @@ using this binding to "drill down" to the desired documentation.
 
 
 ------------------------------------------------------------------------------
-4.3                                                  *g:speckySpecSwitcherKey*
+4.4                                                  *g:speckySpecSwitcherKey*
 
 
 Setting this enables spec to code switching, and visa versa.
@@ -170,7 +202,7 @@ convention.
 
 
 ------------------------------------------------------------------------------
-4.4                                                       *g:speckyRunSpecKey*
+4.5                                                       *g:speckyRunSpecKey*
 
 
 Setting this variable allows you to run "spec" on the current buffer.
@@ -202,7 +234,7 @@ switch to the spec before running the command.
 
 
 ------------------------------------------------------------------------------
-4.5                                                       *g:speckyRunSpecCmd*
+4.6                                                       *g:speckyRunSpecCmd*
 
 
 This is the program, with flags, that the current file is sent to when
@@ -218,7 +250,7 @@ supported too, though less useful.
 
 
 ------------------------------------------------------------------------------
-4.6                                                       *g:speckyRunRdocCmd*
+4.7                                                       *g:speckyRunRdocCmd*
 
 
 If you prefer an rdoc display program other than "ri", you can set it
@@ -230,7 +262,7 @@ with this variable.
 
 
 ------------------------------------------------------------------------------
-4.7                                                        *g:speckyVertSplit*
+4.8                                                        *g:speckyVertSplit*
 
 
 For both spec and rdoc commands, split the new window vertically instead of
@@ -255,7 +287,6 @@ Specky was written by Mahlon E. Smith.
 
 Specky is distributed under the BSD license.
     http://www.opensource.org/licenses/bsd-license.php
-
 >
     Copyright (c) 2008, Mahlon E. Smith <mahlon@martini.nu>
     All rights reserved.
@@ -285,6 +316,4 @@ Specky is distributed under the BSD license.
 
 
 
-
 vim: set noet nosta sw=4 ts=4 ft=help :
-
