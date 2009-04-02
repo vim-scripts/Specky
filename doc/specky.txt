@@ -1,4 +1,4 @@
-*specky.txt* Last change: $Id: specky.txt 49 2008-08-15 13:32:40Z mahlon $
+*specky.txt* Last change: $Id: specky.txt 64 2009-03-22 00:49:45Z mahlon $
 
                 VIM REFERENCE MANUAL    by Mahlon E. Smith
 
@@ -45,10 +45,11 @@ programming tasks smooooth and pleasurable.
 
 Okay then, what does it do?
 
-By default?  Nothing, unless you are comfortable using the menus.  I decided
-the easiest way to cherry pick the functionality that you'd like was to enable
-them via key bindings.  By doing this, Specky won't make assumptions about
-your current environment, and won't stomp on anything you don't want it to.
+By default?  Nothing but syntax highlighting unless you are comfortable using
+the menus.  I decided the easiest way to cherry pick the functionality that
+you'd like was to enable them via key bindings.  By doing this, Specky won't
+make assumptions about your current environment, and won't stomp on anything
+you don't want it to.
 
     Specky won't do -anything- with your environment until you enable ~
     the key bindings!! ~
@@ -73,6 +74,10 @@ now do with a single key stroke:
 
     - Make lovely and quick comment banners for ruby code.
 
+Specky also includes a "snippets" file that can be used with the Snipmate
+plugin by Michael Sanders <msanders42+vim@gmail.com>. (Minimum version 0.74.)
+
+	http://www.vim.org/scripts/script.php?script_id=2540
 
 ==============================================================================
 3. ENABLING-SPECKY                                        *SpeckyVimrcExample*

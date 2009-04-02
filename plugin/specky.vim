@@ -2,7 +2,7 @@
 "
 " Specky!
 " Mahlon E. Smith <mahlon@martini.nu>
-" $Id: specky.vim 49 2008-08-15 13:32:40Z mahlon $
+" $Id: specky.vim 64 2009-03-22 00:49:45Z mahlon $
 "
 
 " }}}
@@ -58,11 +58,11 @@ execute 'menu ' . s:menuloc . '.Make\ a\ &banner :call <SID>MakeBanner()<CR>'
 "
 function! <SID>SpecSwitcher()
 
-	" If we aren't in a ruby file (specs are ruby-mode too) then we probably
-	" don't care too much about this function.
+	" If we aren't in a ruby or rspec file then we probably don't care
+	" too much about this function.
 	"
-	if &ft != 'ruby'
-		call s:err( "Not currently in ruby-mode." )
+	if &ft != 'ruby' && &ft != 'rspec'
+		call s:err( "Not currently in ruby or rspec mode." )
 		return
 	endif
 
@@ -122,7 +122,7 @@ function! <SID>QuoteSwitcher()
 		execute ":normal viWc'" . l:word . "'"
 
 	elseif l:type == "'"
-		if &ft == "ruby"
+		if &ft == 'ruby' || &ft == 'rspec'
 			" Single quote to symbol
 			"
 			execute ':normal viWc:' . l:word
@@ -230,7 +230,7 @@ function! <SID>RunRdoc()
 	" If we aren't in a ruby file (specs are ruby-mode too) then we probably
 	" don't care too much about this function.
 	"
-	if ( &ft != 'ruby' && &ft != 'rdoc' )
+	if ( &ft != 'ruby' && &ft != 'rspec' )
 		call s:err( "Not currently in ruby-mode." )
 		return
 	endif
