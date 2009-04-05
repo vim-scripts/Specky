@@ -2,7 +2,7 @@
 "
 " Specky!
 " Mahlon E. Smith <mahlon@martini.nu>
-" $Id: specky.vim 64 2009-03-22 00:49:45Z mahlon $
+" $Id: specky.vim 66 2009-04-03 23:34:00Z mahlon $
 "
 
 " }}}
@@ -230,7 +230,7 @@ function! <SID>RunRdoc()
 	" If we aren't in a ruby file (specs are ruby-mode too) then we probably
 	" don't care too much about this function.
 	"
-	if ( &ft != 'ruby' && &ft != 'rspec' )
+	if ( &ft != 'ruby' && &ft != 'rdoc' )
 		call s:err( "Not currently in ruby-mode." )
 		return
 	endif

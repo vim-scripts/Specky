@@ -1,6 +1,6 @@
 "
 " specky: syntax highlighting for rspec files.
-" $Id: specrun.vim 46 2008-08-12 16:24:10Z mahlon $
+" $Id: rspec.vim 66 2009-04-03 23:34:00Z mahlon $
 "
 
 runtime! syntax/ruby.vim
