@@ -1,6 +1,6 @@
 "
 " specky: syntax highlighting for the 'spec' script output
-" $Id: specrun.vim 46 2008-08-12 16:24:10Z mahlon $
+" $Id: specrun.vim 67 2009-04-20 00:57:06Z mahlon $
 "
 
 if has("folding")
@@ -25,7 +25,7 @@ highlight link specPassed MoreMsg
 
 " Pending specs (specdoc output)
 "
-syntax match specPending /.*PENDING: Not Yet Implemented)/ contained
+syntax match specPending /.*PENDING: .*)$/ contained
 highlight link specPending Function
 "
 " (Plain output)

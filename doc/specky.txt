@@ -1,4 +1,4 @@
-*specky.txt* Last change: $Id: specky.txt 66 2009-04-03 23:34:00Z mahlon $
+*specky.txt* Last change: $Id: specky.txt 67 2009-04-20 00:57:06Z mahlon $
 
                 VIM REFERENCE MANUAL    by Mahlon E. Smith
 
@@ -21,7 +21,7 @@ CONTENTS                                                      *SpeckyContents*
         4.5) Run specs for the current buffer.......|g:speckyRunSpecKey|
         4.6) Modify the default spec command........|g:speckyRunSpecCmd|
         4.7) Modify the default rdoc command........|g:speckyRunRdocCmd|
-        4.8) Split windows vertically...............|g:speckyVertSplit|
+        4.8) Alter new window behavior..............|g:speckyWindowType|
     5) Author.......................................|SpeckyAuthor|
     6) License......................................|SpeckyLicense|
 
@@ -92,7 +92,7 @@ Here's what my config looks like. >
     let g:speckyRunSpecKey = "<C-S>s"
     let g:speckyRunSpecCmd = "spec -fs -r loadpath.rb"
     let g:speckyRunRdocCmd = "fri -L -f plain"
-    let g:speckyVertSplit = 1
+    let g:speckyWindowType = 2
 
 
 With these bindings, all specky commands start with <ctrl-s> ("s" for
@@ -201,8 +201,8 @@ convention.
 
     aRubyClass.rb ---> aRubyClass_spec.rb~
  
- Because it leaves respective buffers open, you can essentially think of this
- as a quick toggle for code and tests.
+Because it leaves respective buffers open, you can essentially think of this
+as a quick toggle between code and tests.
 
 
 
@@ -210,7 +210,7 @@ convention.
 4.5                                                       *g:speckyRunSpecKey*
 
 
-Setting this variable allows you to run "spec" on the current buffer.
+Setting this variable runs "spec" on the current buffer.
 
 All output is sent to a syntax highlighted scratch buffer. This new window is
 re-used for each spec run.  You can quickly "jump" to assertion failures and
@@ -259,7 +259,7 @@ supported too, though less useful.
 
 
 If you prefer an rdoc display program other than "ri", you can set it
-with this variable.
+with this variable.  "fri -L -f plain" is always a nice choice, for example.
 
     Default: ~
         ri
@@ -267,12 +267,21 @@ with this variable.
 
 
 ------------------------------------------------------------------------------
-4.8                                                        *g:speckyVertSplit*
+4.8                                                       *g:speckyWindowType*
 
 
-For both spec and rdoc commands, split the new window vertically instead of
-horizontally.
+For both spec and rdoc commands, this variable controls the behavior of the
+newly generated window.
 
+	Default: ~
+		0
+		
+	0 ~
+		Create a new tabbed window
+	1 ~
+		Split the current window horizontally
+	2 ~
+		Split the current window vertically
 
 
 ==============================================================================
