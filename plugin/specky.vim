@@ -2,7 +2,7 @@
 "
 " Specky!
 " Mahlon E. Smith <mahlon@martini.nu>
-" $Id: specky.vim 68 2009-04-20 01:24:08Z mahlon $
+" $Id: specky.vim 69 2009-04-20 05:06:53Z mahlon $
 "
 
 

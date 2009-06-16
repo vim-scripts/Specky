@@ -3,7 +3,7 @@
 # 'snipmate' Vim plugin by Michael Sanders <msanders42+vim@gmail.com>.
 # http://www.vim.org/scripts/script.php?script_id=2540
 #
-# $Id: rspec.snippets 66 2009-04-03 23:34:00Z mahlon $
+# $Id: rspec.snippets 70 2009-06-01 14:33:54Z mahlon $
 #
 
 snippet .and and_raise()
@@ -134,6 +134,12 @@ snippet shbp
 	${1:target}.should ${2:be_${3:predicate}} ${4}
 snippet shnbp
 	${1:target}.should_not ${2:be_${3:predicate}} ${4}
+snippet exre
+	expect { ${1} }.to raise_error( ${2:ErrorClass}, /${3:message match}/i )
+	${4}
+snippet exnre
+	expect { ${1} }.to_not raise_error( ${2:ErrorClass} )
+	${3}
 snippet shre
 	lambda { ${1} }.should raise_error( ${2:ErrorClass}, /${3:message match}/i )
 	${4}
