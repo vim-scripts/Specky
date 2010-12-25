@@ -14,7 +14,10 @@ class SpeckyFormatter < RSpec::Core::Formatters::BaseTextFormatter
 		@indent_level  = 0
 		@failure_index = 0
 		@failures      = []
+		@txt           = ''
+		@summary       = ''
 	end
+
 
 	########################################################################
 	### R S P E C  H O O K S
@@ -23,7 +26,6 @@ class SpeckyFormatter < RSpec::Core::Formatters::BaseTextFormatter
 	### Example group hook -- increase indentation, emit description
 	###
 	def example_group_started( example_group )
-		output.puts
 		self.out '+', '-' * (example_group.description.length + 2), '+'
 		self.out '| ', example_group.description, ' |'
 		self.out '+', '-' * (example_group.description.length + 2), '+'
@@ -73,13 +75,18 @@ class SpeckyFormatter < RSpec::Core::Formatters::BaseTextFormatter
 	### for Vim to fold.
 	###
 	def dump_failures
-		self.out "\n\n\n" unless @failures.empty?
+		self.out "\n" unless @failures.empty?
 
 		@failures.each_with_index do |example, index|
 			desc      = example.metadata[ :full_description ]
 			exception = example.execution_result[ :exception ]
+			file = line = nil
 
+			if exception.backtrace.first =~ /(.*):(\d+)/
+				file, line = $1, $2.to_i
+			end
 			self.out "FAILURE - #%d)" % [ index + 1 ]
+			self.out "%s:%d" % [ file, line ]
 
 			if RSpec::Core::PendingExampleFixedError === exception
 				self.out "%s FIXED" % [ desc ]
@@ -100,8 +107,28 @@ class SpeckyFormatter < RSpec::Core::Formatters::BaseTextFormatter
 					end
 				end
 			end
-			self.out "\n"
+
+			self.out exception_source( file, line ) if file && line
 		end
+	end
+
+
+	### Emit the source of the exception, with context lines.
+	###
+	def exception_source( file, line )
+		context = ''
+		low, high = line - 3, line + 3
+
+		File.open( file ).each_with_index do |cline, i|
+			cline.chomp!.rstrip!
+			next unless i >= low && i <= high
+			context << "  %s%4d: %s\n" % [ ( i == line ? '>>' : ' |' ), i, cline ]
+		end
+
+		return context
+
+	rescue
+		'Unable to parse exception context lines.'
 	end
 
 
@@ -109,18 +136,26 @@ class SpeckyFormatter < RSpec::Core::Formatters::BaseTextFormatter
 	###
 	def dump_summary( duration, example_count, failure_count, pending_count )
 		succeeded = example_count - failure_count - pending_count
-		self.out '+', '-' * 49, '+'
-		self.out '|', ' ' * 18, '-- Summary --', ' ' * 18, '|'
-		self.out '+----------+-----------+--------+---------+-------+'
-		self.out '| Duration | Succeeded | Failed | Pending | Total |'
-		self.out '+----------+-----------+--------+---------+-------+'
+		@summary << "+%s+\n" % [ '-' * 49 ]
+		@summary << "|%s-- Summary --%s|\n" % [ ' ' * 18, ' ' * 18 ]
+		@summary << "+----------+-----------+--------+---------+-------+\n"
+		@summary << "| Duration | Succeeded | Failed | Pending | Total |\n"
+		@summary << "+----------+-----------+--------+---------+-------+\n"
 
-		self.out "| %7ss | %9s | %6s | %7s | %5s |" % [
+		@summary << "| %7ss | %9s | %6s | %7s | %5s |\n" % [
 			"%0.3f" % duration, succeeded, failure_count,
 			pending_count, example_count
 		]
 
-		self.out '+----------+-----------+--------+---------+-------+'
+		@summary << "+----------+-----------+--------+---------+-------+\n\n"
+	end
+
+
+	### End of run.  Dump it all out!
+	###
+	def close
+		output.puts @summary
+		output.puts @txt
 	end
 
 
@@ -132,7 +167,7 @@ class SpeckyFormatter < RSpec::Core::Formatters::BaseTextFormatter
 	###
 	def out( *msg )
 		msg = msg.join
-		output.puts "%s%s" % [ '  ' * @indent_level, msg ]
+		@txt << "%s%s\n" % [ '  ' * @indent_level, msg ]
 	end
 
 	### Format the basic example information, along with the run duration.

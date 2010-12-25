@@ -1,4 +1,4 @@
-*specky.txt* Last change: $Id: specky.txt,v 763cef799c74 2010/12/18 08:56:09 mahlon $
+*specky.txt* Last change: $Id: specky.txt,v cd1f3381c1ed 2010/12/25 04:01:10 mahlon $
 
                 VIM REFERENCE MANUAL    by Mahlon E. Smith
 
@@ -91,11 +91,11 @@ If you installed Specky from Vimball, it is likely found at:
 Otherwise, you'll need to locate it, and tell rspec to use it in one of two
 ways.
 
-	1) Set the *g:speckyRunSpecCmd* variable explicitly:
+	1) Set the 'g:speckyRunSpecCmd' variable explicitly:
 
-		let g:speckyRunRdocCmd = "rspec -r ~/.vim/ruby/specky_formatter.rb -f SpeckyFormatter" ~
+		let g:speckyRunSpecCmd = "rspec -r ~/.vim/ruby/specky_formatter.rb -f SpeckyFormatter" ~
 
-	2) or, leave *g:speckyRunSpecCmd* at its default value, and instead use
+	2) or, leave 'g:speckyRunSpecCmd' at its default value, and instead use
 	   an '.rspec' settings file in the root directory of the the project
 	   you're working in.  I find this method much more flexible -- the
 	   '.rspec' file can be carried with your project, and customized to

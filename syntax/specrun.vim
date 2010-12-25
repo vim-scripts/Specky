@@ -1,7 +1,7 @@
 "
 " specky: syntax highlighting for rspec test output, using the
 " custom specky formatter. (rspec 2.x)
-" $Id: specrun.vim,v 763cef799c74 2010/12/18 08:56:09 mahlon $
+" $Id: specrun.vim,v cd1f3381c1ed 2010/12/25 04:01:10 mahlon $
 "
 
 if has("folding")
@@ -27,7 +27,9 @@ syntax match specFailed /.*FAILED - #\d\+)/ contains=specDuration,specBoxLine
 syntax keyword specFailedKeyword Failed
 
 " Failure details
-syntax region specFailedDetails start="^FAILURE - #\d\+)" end="^$" fold contains=specCallout
+syntax region specFailedDetails start="^FAILURE - #\d\+)" end="^$" fold contains=specCallout,specErrorLine
+syntax match specErrorLine /^  >>/
+
 
 " Boxes
 syntax match specBox /^\(\s\+\)\?\(+[+-]\+\||.*|\)$/ contains=specFailedKeyword,specDurationKeyword,specPendingKeyword,specPassedKeyword,specBoxContent
@@ -51,6 +53,7 @@ highlight def link specDuration Normal
 highlight def link specBox LineNr
 highlight def link specBoxContent Constant
 highlight def link specBoxLine LineNr
+highlight def link specErrorLine ErrorMsg
 
 let b:current_syntax = "specrun"
 
