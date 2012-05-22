@@ -116,6 +116,7 @@ class SpeckyFormatter < RSpec::Core::Formatters::BaseTextFormatter
               cwd_path = Pathname.new(cwd)
               srcfile_path = Pathname.new(srcfile)
               exception.backtrace.each_with_index { |exline, index|
+                next if exline.include? '/lib/rspec/'
                 begin
                   mp = exline.index(':')
                   filename = exline[0..mp-1]
