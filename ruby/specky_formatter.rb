@@ -1,5 +1,6 @@
 
 require 'rspec/core/formatters/base_text_formatter'
+require 'pathname'
 
 ### SpeckyFormatter: A basic RSpec 2.x text formatter, to be used
 ### with the 'Specky' vim plugin (or from the command line, if you
@@ -70,53 +71,90 @@ class SpeckyFormatter < RSpec::Core::Formatters::BaseTextFormatter
 		@failures << example
 	end
 
-
 	### Called after all examples are run.  Emit details for each failed example,
 	### for Vim to fold.
 	###
 	def dump_failures
 		self.out "\n" unless @failures.empty?
-		cwd = Regexp.new( Dir.pwd )
-		bt_regexp = /(.+?):(\d+)(|:\d+)/
+        cwd = Dir.pwd
 
 		@failures.each_with_index do |example, index|
-			desc      = example.metadata[ :full_description ]
+            srcproc = example.metadata[:example_group_block]
+            srcfileline = srcproc.to_s.split('@')
+            srcfile, srcline = srcfileline.last.split(/:|>$/)
+			#desc      = example.metadata[ :full_description ]
+			desc      = example.metadata[ :description ]
 			exception = example.execution_result[ :exception ]
-			file = line = nil
+			full_filename = line = nil
 
-			# remove files that are not in within the cwd.
-			#
-			# this isn't optimal, but it does stay within specky's notion of
-			# running it from within the project directory, and makes sure we don't
-			# inadvertently display code from rspec itself.
-			#
-			bt_file = exception.backtrace.find { |line| line =~ bt_regexp && line =~ cwd }
-			file, line = $1, $2.to_i if bt_file =~ bt_regexp
-			self.out "FAILURE - #%d)" % [ index + 1 ]
-			self.out "%s:%d" % [ file, line ] if bt_file
+			self.out "FAILURE - #%d) #{desc}" % [ index + 1 ]
 
-			if exception.respond_to?( :pending_fixed? ) && exception.pending_fixed?
-				self.out "%s FIXED" % [ desc ]
-				self.out "Expected pending '%s' to fail.  No error was raised." % [
-					example.metadata[ :execution_result ][ :pending_message ]
-				]
-			else
-				self.out desc
-				self.out "Failure/Error: %s" %  [ read_failed_line( exception, example).strip ]
-				exception.message.split("\n").each {|l| self.out l}
+            point_of_failure_file = nil
+            if exception.respond_to?( :pending_fixed? ) && exception.pending_fixed?
+              self.out "%s FIXED" % [ desc ]
+              self.out "Expected pending '%s' to fail.  No error was raised." % [
+                example.metadata[ :execution_result ][ :pending_message ]
+              ]
+            else
+              self.out "Caught Exception (#{exception.class.name}):"
+              exception.message.split("\n").each {|l| self.out "   |   #{l}" }
 
-				# logic taken from the base class
-				example.example_group.ancestors.push(example.example_group).each do |group|
-					if group.metadata[:shared_group_name]
-						self.out "Shared Example Group: \"#{group.metadata[:shared_group_name]}\" called from " +
-							"#{backtrace_line(group.metadata[:example_group][:location])}"
-						break
-					end
-				end
-			end
+              # remove files and characters from backtrace that are just noise
+              #
+              # this is optimal, but we want to make sure we show just files from
+              # this project (cwd) or files from our own included gems, without
+              # the noise of rspec source files.  So, we stop printing backtrace
+              # once we iterate to files older than our current spec file in the
+              # backtrace.  Additionally, use relative paths for conciseness.
+              # These backtrace optimizations keep the noise to a minimum without
+              # cutting off deeper stacktrace lines that we need to see.
+              #
+              self.out "Exception Backtrace:"
+              max_fd = 0
+              first_line = nil
+              done = false
+              cwd_path = Pathname.new(cwd)
+              srcfile_path = Pathname.new(srcfile)
+              exception.backtrace.each_with_index { |exline, index|
+                next if exline.include? '/lib/rspec/'
+                begin
+                  mp = exline.index(':')
+                  filename = exline[0..mp-1]
+                  filepath = Pathname.new(filename)
+                  trace_line = "#{filepath.relative_path_from(cwd_path)}#{exline[mp..-1]}"
+                rescue => ex
+                  trace_line = exline
+                end
+                self.out "   |   #{index}:  #{trace_line}" unless trace_line.nil?
+                first_line = [exline, trace_line] if first_line.nil? and !trace_line.nil?
+                break if exline.start_with? srcfile
+              }
+              unless first_line.nil?
+                parts = first_line[0].split(':')
+                full_filename = parts[0]
+                point_of_failure_file = first_line[1].split(':')[0]
+                line = parts[1].split(/[^0-9]/)[0].to_i - 1
+              end
 
-			self.out exception_source( file, line-1 ) if file && line
-		end
+              self.out "During RSpec:"
+              self.out "   | file @ #{srcfile_path.relative_path_from(cwd_path)}"
+              self.out "   | line #{srcline}:  #{read_failed_line(exception, example).strip}"
+
+              # logic taken from the base class
+              example.example_group.ancestors.push(example.example_group).each do |group|
+                if group.metadata[:shared_group_name]
+                  self.out "Shared Example Group: \"#{group.metadata[:shared_group_name]}\" called from " +
+                    "#{backtrace_line(group.metadata[:example_group][:location])}"
+                  break
+                end
+              end
+            end
+
+            self.out "Point of Failure:"
+            self.out "   |  @  #{point_of_failure_file}:#{line}"
+            self.out "   |  ---------------------------------------------------------------------------------"
+            self.out exception_source( full_filename, line ) if full_filename && line
+        end
 	end
 
 
