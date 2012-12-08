@@ -61,8 +61,8 @@ function! <SID>SpecSwitcher()
 	" If we aren't in a ruby or rspec file then we probably don't care
 	" too much about this function.
 	"
-	if &ft != 'ruby' && &ft != 'rspec'
-		call s:err( "Not currently in ruby or rspec mode." )
+	if &ft != 'ruby' && &ft != 'rspec' && &ft != 'coffee'
+		call s:err( "Not currently in ruby, rspec, or coffeescript mode." )
 		return
 	endif
 
@@ -81,13 +81,19 @@ function! <SID>SpecSwitcher()
 	" rubycode.rb ---> rubycode_spec.rb
 	" 
 	let l:filename     = matchstr( bufname('%'), '[0-9A-Za-z_.-]*$' )
-	let l:is_spec_file = match( l:filename, '_spec.rb$' ) == -1 ? 0 : 1
 
-	if l:is_spec_file
+	let l:is_ruby_spec_file   = match( l:filename, '_spec.rb$' )     == -1 ? 0 : 1
+	let l:is_coffee_spec_file = match( l:filename, '_spec.coffee$' ) == -1 ? 0 : 1
+
+  if l:is_ruby_spec_file
 		let l:other_file = substitute( l:filename, '_spec\.rb$', '\.rb', '' )
-	else
+  elseif l:is_coffee_spec_file
+		let l:other_file = substitute( l:filename, '_spec\.coffee$', '\.coffee', '' )
+  elseif &ft=='coffee'
+		let l:other_file = substitute( l:filename, '\.coffee$', '_spec\.coffee', '' )
+  else
 		let l:other_file = substitute( l:filename, '\.rb$', '_spec\.rb', '' )
-	endif
+  endif
 
 	let l:bufnum = bufnr( l:other_file )
 	if l:bufnum == -1
